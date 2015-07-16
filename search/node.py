@@ -19,11 +19,6 @@ class Node(object):
         # Heuristic distance between current state and result state
         self.h_distance = heuristic.levenshtein_distance(self.state, self.result_state)
 
-        # Path to absolute english dictionary
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        self.dict_path = os.path.join(dir_path, "resources", "wordlist.txt")
-        self.dict_path = os.path.normpath(self.dict_path)
-
 
     def is_state_result(self):
         ''' Returns True if the current state is the result state '''
@@ -37,13 +32,13 @@ class Node(object):
         '''
 
         regex = []
-
+        
         start_regex = r"^\w" + self.state + r"$"
         end_regex = r"^" + self.state + r"\w$"
 
         regex.append(start_regex)
         regex.append(end_regex)
-
+        
         state_temp = "^" + self.state + "$"
 
         for i in xrange(1, len(state_temp)-1):
@@ -53,35 +48,26 @@ class Node(object):
         return "|".join(regex)
 
 
-    def __get_matching_words__(self, re_exp):
+    def __get_matching_words__(self, re_exp, wordlist):
         ''' Returns a list of words matching the passed regular expression '''
 
         search_regex = re.compile(re_exp, re.IGNORECASE)
         matching_words = []
 
-        try:
+        for word in wordlist:
+            if search_regex.search(word) and word.lower() != self.state.lower():
+                matching_words.append(word.strip())
 
-            f = open(self.dict_path, 'r')
-
-            for word in f:
-                if search_regex.search(word) and word.strip().lower() != self.state.strip().lower():
-                    matching_words.append(word.strip())
-
-        except Exception as _:
-            pass
-
-        finally:
-            f.close()
-            return matching_words
+        return matching_words
 
 
-    def get_next_nodes(self):
+    def get_next_nodes(self, wordlist):
         ''' Returns the next nodes of this node. '''
 
         adjacent_nodes = []
         search_regex = self.__generate_adj_words_regex__()
 
-        for matched_word in self.__get_matching_words__(search_regex):
+        for matched_word in self.__get_matching_words__(search_regex, wordlist):
             node_temp = Node(matched_word, self.depth + 1, self.result_state, self)
             adjacent_nodes.append(node_temp)
 

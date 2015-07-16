@@ -1,6 +1,7 @@
 ''' Implements various search mechanisms '''
 
 from node import Node
+import os
 
 class Search(object):
     ''' Contains search methods '''
@@ -8,6 +9,32 @@ class Search(object):
     def __init__(self, start_state, end_state):
         self.start_state = start_state
         self.end_state = end_state
+
+        # Path to absolute english dictionary
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        self.dict_path = os.path.join(dir_path, "resources", "wordlist.txt")
+        self.dict_path = os.path.normpath(self.dict_path)
+
+        self.dictionary_list = self.load_dict_into_list()
+
+
+    def load_dict_into_list(self):
+        ''' Load dictionary into list '''
+
+        wordlist = []
+        try:
+            f = open(self.dict_path, 'r')
+
+            for word in f:
+                wordlist.append(word.strip())
+
+            return wordlist
+
+        except IOError as _:
+            pass
+
+        finally:
+            f.close()
 
 
     def astar_search(self):
@@ -28,7 +55,7 @@ class Search(object):
 
             visited_words.append(current_node.state)
 
-            next_nodes = current_node.get_next_nodes()
+            next_nodes = current_node.get_next_nodes(self.dictionary_list)
 
             for node in next_nodes:
                 if node.state in visited_words:
